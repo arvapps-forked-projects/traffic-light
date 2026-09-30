@@ -155,6 +155,7 @@ import com.leekleak.trafficlight.util.px
 import com.leekleak.trafficlight.util.toTimestamp
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.rememberHazeState
+import timber.log.Timber
 import java.text.DecimalFormat
 import java.text.NumberFormat
 import java.time.LocalDate
@@ -617,26 +618,16 @@ private fun LazyListScope.typeConfig(
             val metric = LocalSizeMetric.current
             val formatter = remember { DecimalFormat("0.##") }
             val numberFormat = remember { NumberFormat.getInstance() }
-            val textFieldState = rememberTextFieldState()
-            var ignoreNextTextUpdate by remember { mutableStateOf(true) }
             var displayUnit by remember {
                 val unit = DataSize(plan.mainDataUsed).unit(metric)
                 mutableStateOf(if (unit == DataSizeUnit.GB) DataSizeUnit.GB else DataSizeUnit.MB)
             }
-
-            LaunchedEffect(plan.mainDataUsed, displayUnit) {
-                val value = DataSize(plan.mainDataUsed).getAsUnit(displayUnit, metric)
-                val newText = formatter.format(value)
-                ignoreNextTextUpdate = true
-                textFieldState.setTextAndPlaceCursorAtEnd(newText)
-            }
+            val textFieldState = rememberTextFieldState(
+                formatter.format(DataSize(plan.mainDataUsed).getAsUnit(displayUnit, metric))
+            )
 
             LaunchedEffect(textFieldState.text) {
                 val text = textFieldState.text.toString()
-                if (ignoreNextTextUpdate) {
-                    ignoreNextTextUpdate = false
-                    return@LaunchedEffect
-                }
                 if (text.isNotEmpty()) {
                     val parsed = try { numberFormat.parse(text)?.toDouble() } catch (_: Exception) { null }
                     if (parsed != null) {
@@ -645,6 +636,7 @@ private fun LazyListScope.typeConfig(
 
                         val currentValue = DataSize(plan.mainDataUsed).getAsUnit(displayUnit, metric)
                         if (text != formatter.format(currentValue)) {
+                            Timber.e(newUsed.toString())
                             onManualUsageChange(newUsed)
                         }
                     }

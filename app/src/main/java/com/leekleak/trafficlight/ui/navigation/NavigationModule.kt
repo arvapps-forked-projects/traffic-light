@@ -37,7 +37,6 @@ val navigationModule = module {
         DataPlans(
             uiState = uiState,
             selectDataPlan = viewModel::selectDataPlan,
-            getPlanSnapshot = viewModel::getPlanSnapshot,
             disableShizukuHint = viewModel::disableShizukuHint,
             goToPlanConfig = { plan -> navigator.goTo(PlanConfigKey(plan)) },
             refresh = viewModel::refresh

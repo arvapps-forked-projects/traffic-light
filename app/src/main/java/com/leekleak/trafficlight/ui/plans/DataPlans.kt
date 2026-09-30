@@ -31,7 +31,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -70,12 +69,12 @@ import com.leekleak.trafficlight.util.MiniCardState
 import com.leekleak.trafficlight.util.TrendCard
 import com.leekleak.trafficlight.util.openLink
 import com.leekleak.trafficlight.util.shelfShape
+import timber.log.Timber
 
 @Composable
 fun DataPlans(
     uiState: DataPlansUiState,
     selectDataPlan: (DataPlan?) -> Unit,
-    getPlanSnapshot: suspend (DataPlan) -> DataPlanSnapshot,
     disableShizukuHint: () -> Unit,
     goToPlanConfig: (DataPlan) -> Unit,
     refresh: () -> Unit,
@@ -101,7 +100,6 @@ fun DataPlans(
             horizontalPadding = paddingSide + 8.dp,
             uiState = uiState,
             selectDataPlan = selectDataPlan,
-            getPlanSnapshot = getPlanSnapshot,
             disableShizukuHint = disableShizukuHint,
             goToPlanConfig = goToPlanConfig
         )
@@ -114,7 +112,6 @@ private fun DataPlanPager(
     horizontalPadding: Dp,
     uiState: DataPlansUiState,
     selectDataPlan: (DataPlan?) -> Unit,
-    getPlanSnapshot: suspend (DataPlan) -> DataPlanSnapshot,
     disableShizukuHint: () -> Unit,
     goToPlanConfig: (DataPlan) -> Unit,
 ) {
@@ -146,13 +143,14 @@ private fun DataPlanPager(
     ) { page ->
         if (page < activePlans.size) {
             val plan = activePlans[page]
-            val planSnapshot by produceState(DataPlanSnapshot(0, plan.mainDataSizeUnit, emptyList())) { 
-                value = getPlanSnapshot(plan)
-            }
-            if (plan.configured) {
-                ConfiguredDataPlan(plan, planSnapshot) { goToPlanConfig(plan) }
-            } else {
-                UnconfiguredDataPlan(plan, planSnapshot) { goToPlanConfig(plan) }
+            val snapshot = uiState.planSnapshots[activePlans[page]]
+
+            if (snapshot != null) {
+                if (plan.configured) {
+                    ConfiguredDataPlan(plan, snapshot) { goToPlanConfig(plan) }
+                } else {
+                    UnconfiguredDataPlan(plan, snapshot) { goToPlanConfig(plan) }
+                }
             }
         } else {
             Column(
@@ -223,7 +221,7 @@ private fun DataPlanInsights(
     ) {
         item{}
         val plan = uiState.plan
-        val snapshot = uiState.snapshot
+        val snapshot = uiState.planSnapshots[plan]
         if (plan != null && plan.mainDataSize.byteValue == 0L) {
             item {
                 InfoCard(

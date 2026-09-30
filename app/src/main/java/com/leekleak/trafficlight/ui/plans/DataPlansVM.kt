@@ -1,5 +1,6 @@
 package com.leekleak.trafficlight.ui.plans
 
+import androidx.compose.animation.core.snap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.leekleak.trafficlight.charts.model.BarData
@@ -22,8 +23,8 @@ import kotlinx.coroutines.launch
 
 data class DataPlansUiState(
     val activePlans: List<DataPlan> = emptyList(),
+    val planSnapshots: Map<DataPlan, DataPlanSnapshot> = emptyMap(),
     val plan: DataPlan? = null,
-    val snapshot: DataPlanSnapshot? = null,
     val dataSafety: MiniCardState = MiniCardState.NEUTRAL,
     val trend: Int = 0,
     val todayBudget: Long = 0,
@@ -52,15 +53,29 @@ class DataPlansVM(
     init {
         viewModelScope.launch {
             dataPlanDao.activePlansFlow.collect { plans ->
-                if (selectedDataPlan.value == null && plans.isNotEmpty()) {
-                    selectedDataPlan.value = plans.first()
+                if (plans.isNotEmpty()) {
+                    if (selectedDataPlan.value == null) {
+                        selectedDataPlan.value = plans.first()
+                    } else if (!plans.contains(selectedDataPlan.value)) {
+                        selectedDataPlan.value =
+                            plans.find { it.hashedSubscriberID == selectedDataPlan.value?.hashedSubscriberID }
+                                ?: plans.first()
+                    }
                 }
             }
         }
     }
 
-    private val planFlow = combine(selectedDataPlan, refreshTrigger) { plan, _ ->
-        plan?.let { it to dataPlansLogic.getSnapshot(it) }
+    private val planSnapshotFlow = combine(dataPlanDao.activePlansFlow, refreshTrigger) { list, _ ->
+        list.associateWith { it.getUsageSnapshot(networkUsageManager) }
+    }
+
+    private val planFlow = combine(selectedDataPlan, planSnapshotFlow) { plan, snapshots ->
+        val snapshot = snapshots[plan]
+        if (plan != null && snapshot != null) {
+            plan to snapshot
+        }
+        else null
     }.filterNotNull().distinctUntilChanged()
 
     private val dataSafetyFlow = planFlow.map { (plan, snapshot) -> dataPlansLogic.getDataSafety(plan, snapshot) }.distinctUntilChanged()
@@ -73,8 +88,8 @@ class DataPlansVM(
 
     val uiState = combine(
         dataPlanDao.activePlansFlow,
+        planSnapshotFlow,
         selectedDataPlan,
-        planFlow,
         dataSafetyFlow,
         trendFlow,
         todayBudgetFlow,
@@ -86,8 +101,8 @@ class DataPlansVM(
         appPreferenceRepo.shizukuTracking
     ) { flows ->
         val activePlans = flows[0] as List<DataPlan>
-        val plan = flows[1] as DataPlan?
-        val planPair = flows[2] as Pair<*, *>?
+        val planSnapshots = flows[1] as Map<DataPlan, DataPlanSnapshot>
+        val plan = flows[2] as DataPlan?
         val safety = flows[3] as MiniCardState? ?: MiniCardState.NEUTRAL
         val trend = flows[4] as Int? ?: 0
         val today = flows[5] as Long? ?: 0L
@@ -101,7 +116,7 @@ class DataPlansVM(
         DataPlansUiState(
             activePlans = activePlans,
             plan = plan,
-            snapshot = planPair?.second as DataPlanSnapshot?,
+            planSnapshots = planSnapshots,
             dataSafety = safety,
             trend = trend,
             todayBudget = today,
@@ -115,5 +130,4 @@ class DataPlansVM(
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), DataPlansUiState())
 
     fun disableShizukuHint() = viewModelScope.launch { appPreferenceRepo.setShizukuHint(false) }
-    suspend fun getPlanSnapshot(plan: DataPlan): DataPlanSnapshot = plan.getUsageSnapshot(networkUsageManager)
 }

@@ -1,0 +1,9 @@
+Enhancements:
+- Added shortcut to silent notification channel settings
+- Remove obsolete notification channels
+
+Bugfixes:
+- Fix ANR on slow devices when opening hourly history list
+- Fix notification not hiding when disconnected but VPN enabled
+- Fix data plans screen not updating after plan update
+- Fix data plan usage inputs being silently ignored at times

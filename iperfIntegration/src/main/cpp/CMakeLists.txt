@@ -11,6 +11,12 @@ configure_file(
     @ONLY
 )
 
+configure_file(
+    "iperf_config.h"
+    "${IPERF_SRC_DIR}/iperf_config.h"
+    @ONLY
+)
+
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}")
 
 set(IPERF_TARGET libiperf3.so)

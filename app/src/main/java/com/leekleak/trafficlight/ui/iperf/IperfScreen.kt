@@ -209,9 +209,9 @@ private fun ClientScreen(
             modifier = Modifier
                 .padding(top = 4.dp)
                 .align(Alignment.TopCenter),
-            shape = MaterialTheme.shapes.large,
+            shape = MaterialTheme.shapes.medium,
             onClick = { showEntrySelector = true },
-            contentPadding = PaddingValues(start = 16.dp, top = 4.dp, end = 8.dp, bottom = 4.dp)
+            contentPadding = PaddingValues(start = 12.dp, top = 4.dp, end = 8.dp, bottom = 4.dp)
         ) {
             Row(
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
@@ -386,26 +386,18 @@ private fun ServerScreen(
         modifier = Modifier.fillMaxSize(),
     ) {
         if (myIp != null) {
-            Column(
+            Button(
                 modifier = Modifier
-                    .card(MaterialTheme.colorScheme.primary)
-                    .padding(start = 16.dp, top = 4.dp, end = 16.dp, bottom = 4.dp)
-                    .align(Alignment.TopCenter)
+                    .padding(top = 4.dp)
+                    .align(Alignment.TopCenter),
+                shape = MaterialTheme.shapes.medium,
+                onClick = {},
+                contentPadding = PaddingValues(start = 12.dp, top = 4.dp, end = 12.dp, bottom = 4.dp)
             ) {
-                Text(
-                    text = stringResource(R.string.server_address),
-                    color = MaterialTheme.colorScheme.onPrimary,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 14.sp,
-                    lineHeight = 18.sp,
-                )
-                Text(
-                    text = "$myIp:5201",
-                    color = MaterialTheme.colorScheme.onPrimary,
-                    fontWeight = FontWeight.Medium,
-                    fontSize = 14.sp,
-                    lineHeight = 18.sp,
-                )
+                Column {
+                    Text(stringResource(R.string.server_address), fontWeight = FontWeight.Bold)
+                    Text("$myIp:5201")
+                }
             }
         }
 

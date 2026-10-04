@@ -151,7 +151,7 @@ fun NavigationButton(navigator: Navigator, route: NavKey, name: String, icon: In
         },
         contentPadding = PaddingValues(vertical = 8.dp, horizontal = horizontalPadding)
     ) {
-        Row {
+        Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(
                 painter = painterResource(icon),
                 contentDescription = route.toString()

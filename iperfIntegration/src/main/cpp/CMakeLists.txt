@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.22.1)
 project("iperf3" C)
 
 set(IPERF_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/iperf/src")
-set(PACKAGE_VERSION "3.21")
+set(PACKAGE_VERSION "3.22")
 
 configure_file(
     "${IPERF_SRC_DIR}/version.h.in"

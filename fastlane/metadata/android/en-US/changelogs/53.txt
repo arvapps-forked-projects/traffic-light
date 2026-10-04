@@ -1,0 +1,2 @@
+F-droid:
+- Build iperf3 from source

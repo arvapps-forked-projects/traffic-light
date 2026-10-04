@@ -54,7 +54,12 @@ class IperfScreenVM(
                 }
             connectivityManager.registerNetworkCallback(request, networkCallback)
         } else {
-            trySend(Formatter.formatIpAddress(wifiManager.connectionInfo.ipAddress))
+            val ipAddress = try {
+                Formatter.formatIpAddress(wifiManager.connectionInfo.ipAddress)
+            } catch (_: SecurityException) {
+                null
+            }
+            trySend(ipAddress)
         }
         awaitClose {
             networkCallback?.let { connectivityManager.unregisterNetworkCallback(it) }

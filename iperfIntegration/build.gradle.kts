@@ -16,6 +16,14 @@ android {
         consumerProguardFiles("consumer-rules.pro")
     }
 
+    externalNativeBuild {
+        cmake {
+            path = file("src/main/cpp/CMakeLists.txt")
+            version = "4.1.2"
+        }
+    }
+    ndkVersion = "30.0.16248370"
+
     packaging {
         jniLibs {
             useLegacyPackaging = true

@@ -14,7 +14,7 @@ import kotlin.coroutines.resume
 
 class IPerf3Provider(context: Context) {
 
-    private val binaryPath = "${context.applicationInfo.nativeLibraryDir}/libiperf3_21.so"
+    private val binaryPath = "${context.applicationInfo.nativeLibraryDir}/libiperf3.so"
 
     val running: StateFlow<Boolean>
         field = MutableStateFlow(false)

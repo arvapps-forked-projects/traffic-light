@@ -14,8 +14,8 @@ import com.leekleak.iperfintegration.IPerf3Provider
 import com.leekleak.trafficlight.database.IPerfEntry
 import com.leekleak.trafficlight.database.IPerfEntryDao
 import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -26,7 +26,7 @@ class IperfScreenVM(
     private val iPerfEntryDao: IPerfEntryDao,
     val iPerf3Provider: IPerf3Provider,
 ): ViewModel() {
-    val ipFlow: Flow<String?> = callbackFlow {
+    val ipFlow: StateFlow<String?> = callbackFlow {
         var networkCallback: ConnectivityManager.NetworkCallback? = null
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -54,17 +54,16 @@ class IperfScreenVM(
                 }
             connectivityManager.registerNetworkCallback(request, networkCallback)
         } else {
-            val ipAddress = try {
-                Formatter.formatIpAddress(wifiManager.connectionInfo.ipAddress)
-            } catch (_: SecurityException) {
-                null
-            }
-            trySend(ipAddress)
+            trySend(Formatter.formatIpAddress(wifiManager.connectionInfo.ipAddress))
         }
         awaitClose {
             networkCallback?.let { connectivityManager.unregisterNetworkCallback(it) }
         }
-    }
+    }.stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(5000L),
+        null
+    )
 
     val iperfEntries = iPerfEntryDao.allEntries.stateIn(
         viewModelScope,

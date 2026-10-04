@@ -41,7 +41,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -90,7 +89,7 @@ import kotlinx.coroutines.withContext
 fun IperfScreen(
     viewModel: IperfScreenVM
 ) {
-    val myIp by viewModel.ipFlow.collectAsState(null)
+    val myIp by viewModel.ipFlow.collectAsStateWithLifecycle()
     val iPerf3Provider = viewModel.iPerf3Provider
 
     HazeScaffold(
@@ -386,22 +385,22 @@ private fun ServerScreen(
     Box(
         modifier = Modifier.fillMaxSize(),
     ) {
-        Column(
-            modifier = Modifier
-                .card(MaterialTheme.colorScheme.primary)
-                .padding(start = 16.dp, top = 4.dp, end = 16.dp, bottom = 4.dp)
-                .align(Alignment.TopCenter)
-        ) {
-            Text(
-                text = stringResource(R.string.server_address),
-                color = MaterialTheme.colorScheme.onPrimary,
-                fontWeight = FontWeight.Bold,
-                fontSize = 14.sp,
-                lineHeight = 18.sp,
-            )
-            myIp?.let {
+        if (myIp != null) {
+            Column(
+                modifier = Modifier
+                    .card(MaterialTheme.colorScheme.primary)
+                    .padding(start = 16.dp, top = 4.dp, end = 16.dp, bottom = 4.dp)
+                    .align(Alignment.TopCenter)
+            ) {
                 Text(
-                    text = "$it:5201",
+                    text = stringResource(R.string.server_address),
+                    color = MaterialTheme.colorScheme.onPrimary,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp,
+                    lineHeight = 18.sp,
+                )
+                Text(
+                    text = "$myIp:5201",
                     color = MaterialTheme.colorScheme.onPrimary,
                     fontWeight = FontWeight.Medium,
                     fontSize = 14.sp,
